@@ -22,6 +22,7 @@ package com.webank.weid.util;
 import java.math.BigInteger;
 import java.util.regex.Pattern;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.bcos.web3j.abi.datatypes.Address;
@@ -101,7 +102,19 @@ public final class WeIdUtils {
      */
     public static String convertPublicKeyToWeId(String publicKey) {
         try {
-            String address = Keys.getAddress(new BigInteger(publicKey));
+            String address;
+            if (DataToolUtils.isValidBase64String(publicKey)) {
+                publicKey = Numeric.toHexStringNoPrefix(
+                    org.apache.commons.codec.binary.Base64.decodeBase64(publicKey));
+                address = Keys.getAddress(publicKey);
+            } else if (NumberUtils.isDigits(publicKey)) {
+                BigInteger val = new BigInteger(publicKey, 10);
+                address = Keys.getAddress(val);
+            } else if (DataToolUtils.isValidHex64PublicKey(publicKey)) {
+                address = Keys.getAddress(publicKey);
+            } else {
+                return StringUtils.EMPTY;
+            }
             return buildWeIdByAddress(address);
         } catch (Exception e) {
             logger.error("convert publicKey to weId error.", e);

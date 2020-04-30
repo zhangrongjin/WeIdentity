@@ -19,20 +19,23 @@
 
 package com.webank.weid.service.impl;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.bcos.web3j.crypto.ECKeyPair;
 import org.bcos.web3j.crypto.Keys;
+import org.fisco.bcos.web3j.utils.Numeric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.webank.weid.constant.ErrorCode;
 import com.webank.weid.constant.WeIdConstant;
-import com.webank.weid.constant.WeIdConstant.PublicKeyType;
 import com.webank.weid.exception.LoadContractException;
 import com.webank.weid.exception.PrivateKeyIllegalException;
 import com.webank.weid.protocol.base.AuthenticationProperty;
@@ -51,6 +54,7 @@ import com.webank.weid.protocol.request.SetServiceArgs;
 import com.webank.weid.protocol.response.CreateWeIdDataResult;
 import com.webank.weid.protocol.response.ResponseData;
 import com.webank.weid.rpc.WeIdService;
+import com.webank.weid.util.DataToolUtils;
 import com.webank.weid.util.WeIdUtils;
 
 /**
@@ -83,7 +87,7 @@ public class WeIdServiceImpl extends AbstractService implements WeIdService {
             return new ResponseData<>(null, ErrorCode.WEID_KEYPAIR_CREATE_FAILED);
         }
 
-        String publicKey = String.valueOf(keyPair.getPublicKey());
+        String publicKey = Base64.encodeBase64String(keyPair.getPublicKey().toByteArray());
         String privateKey = String.valueOf(keyPair.getPrivateKey());
         WeIdPublicKey userWeIdPublicKey = new WeIdPublicKey();
         userWeIdPublicKey.setPublicKey(publicKey);
@@ -386,7 +390,6 @@ public class WeIdServiceImpl extends AbstractService implements WeIdService {
     }
 
 
-
     /**
      * Set Service.
      *
@@ -647,7 +650,8 @@ public class WeIdServiceImpl extends AbstractService implements WeIdService {
                         weId);
                 return new ResponseData<>(StringUtils.EMPTY, ErrorCode.WEID_ALREADY_EXIST);
             }
-            ResponseData<Boolean> innerResp = processCreateWeId(weId, pubKey, privateKey, true);
+            String pubKeyBase64 = convertToValidBase64PublicKey(pubKey);
+            ResponseData<Boolean> innerResp = processCreateWeId(weId, pubKeyBase64, privateKey, true);
             if (innerResp.getErrorCode() != ErrorCode.SUCCESS.getCode()) {
                 logger.error(
                     "[delegateCreateWeId]: create weid failed. error message is :{}, "
@@ -831,5 +835,27 @@ public class WeIdServiceImpl extends AbstractService implements WeIdService {
             delegateAuth.getWeIdPrivateKey().getPrivateKey(),
             weId,
             true);
+    }
+
+    private String convertToValidBase64PublicKey(String pubKey) {
+        try {
+            if (NumberUtils.isDigits(pubKey)) {
+                // long integer format string
+                BigInteger pub = new BigInteger(pubKey, 10);
+                return org.apache.commons.codec.binary.Base64.encodeBase64String(pub.toByteArray());
+            } else if (DataToolUtils.isValidHex64PublicKey(pubKey)) {
+                // hex format goes 2nd
+                return org.apache.commons.codec.binary.Base64
+                    .encodeBase64String(Numeric.hexStringToByteArray(pubKey));
+            } else if (DataToolUtils.isValidBase64String(pubKey)) {
+                // lastly check base64 format
+                return pubKey;
+            } else {
+                return StringUtils.EMPTY;
+            }
+        } catch (Exception e) {
+            logger.error("Error occurred when converting pubkey to Base64: ", e);
+            return StringUtils.EMPTY;
+        }
     }
 }

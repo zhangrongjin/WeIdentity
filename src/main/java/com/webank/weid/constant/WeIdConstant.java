@@ -20,6 +20,7 @@
 package com.webank.weid.constant;
 
 import java.math.BigInteger;
+import java.util.regex.Pattern;
 
 /**
  * The Class WeIdConstant.
@@ -214,6 +215,11 @@ public final class WeIdConstant {
      * The hash value pattern.
      */
     public static final String HASH_VALUE_PATTERN = "0x[a-fA-f0-9]{64}";
+
+    /**
+     * The hex format pattern
+     */
+    public static final Pattern HEX_PATTERN = Pattern.compile("^[0-9a-fA-F]+$");
 
     /**
      * The FISCO-BCOS Address pattern.

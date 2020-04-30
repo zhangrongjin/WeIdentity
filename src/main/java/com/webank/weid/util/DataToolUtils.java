@@ -49,6 +49,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -1989,6 +1990,23 @@ public final class DataToolUtils {
             }
         }
         return result;
+    }
+
+    public static boolean isValidHex64PublicKey(String str) {
+        Matcher matcher = WeIdConstant.HEX_PATTERN.matcher(str);
+        if (!matcher.matches()) {
+            return false;
+        }
+        return (str.length() == 128 || (str.startsWith("00") && str.length() == 130)
+            || (str.length() == 127));
+    }
+
+    public static boolean isValidHex64PrivateKey(String str) {
+        Matcher matcher = WeIdConstant.HEX_PATTERN.matcher(str);
+        if (!matcher.matches()) {
+            return false;
+        }
+        return (str.length() == 64);
     }
 }
 
