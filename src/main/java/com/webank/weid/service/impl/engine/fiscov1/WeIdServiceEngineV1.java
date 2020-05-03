@@ -193,7 +193,7 @@ public class WeIdServiceEngineV1 extends BaseEngine implements WeIdServiceEngine
         // Only store the latest public key
         // OBSOLETE and non-OBSOLETE public keys are regarded as the same
         String trimmedPubKey = StringUtils
-            .splitByWholeSeparator(value.replace(WeIdConstant.REMOVED_PUBKEY_TAG, ""), "/")[0];
+            .splitByWholeSeparator(value.replace(WeIdConstant.REMOVED_PUBKEY_TAG, ""), "|")[0];
         for (PublicKeyProperty pr : pubkeyList) {
             if (pr.getPublicKey().contains(trimmedPubKey)) {
                 return;

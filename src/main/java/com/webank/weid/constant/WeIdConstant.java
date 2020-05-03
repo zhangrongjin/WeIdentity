@@ -128,7 +128,7 @@ public final class WeIdConstant {
     /**
      * The Constant separator character.
      */
-    public static final String SEPARATOR = "/";
+    public static final String SEPARATOR = "|";
 
     /**
      * The Constant Max authority issuer name length in Chars.

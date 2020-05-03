@@ -324,7 +324,7 @@ public class WeIdServiceImpl extends AbstractService implements WeIdService {
             String publicKey = setPublicKeyArgs.getPublicKey();
             String attrValue = new StringBuffer()
                 .append(publicKey)
-                .append(WeIdConstant.REMOVED_PUBKEY_TAG).append("/")
+                .append(WeIdConstant.REMOVED_PUBKEY_TAG).append("|")
                 .append(owner)
                 .toString();
             return weIdServiceEngine.setAttribute(
